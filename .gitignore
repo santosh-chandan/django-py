@@ -1,69 +1,39 @@
-# Magento 2 Git Ignore
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
 
-# Dependency directories
-/vendor/
-/node_modules/
-
-# Static content
-/pub/static/
-/pub/media/
-/generated/
-
-# Environment configuration
-/app/etc/env.php
-/app/etc/config.php
-
-# IDE and OS files
-*.iml
+# Django stuff
 *.log
-*.DS_Store
-.idea/
+*.pot
+*.pyc
+db.sqlite3
+media/
+staticfiles/
+.env
+
+# Virtual environment
+.venv/
+env/
+venv/
+ENV/
+
+# IDE / editor files
 .vscode/
-
-# Composer files (lock file should be committed if you're managing versions)
-/composer.phar
-
-# Cache & session
-/var/cache/
-/var/page_cache/
-/var/session/
-/var/view_preprocessed/
-/var/log/
-/var/tmp/
-
-# PHPUnit
-/phpunit.xml
-/test-results/
-
-# Backup files
-*.bak
+.idea/
 *.swp
 *.swo
 
-# Docker or custom environment files
-.docker/
-.env
-.editorconfig
-.htaccess
-.htaccess.sample
-.php-cs-fixer.dist.php
-.user.ini
-composer.json
-composer.lock
-CHANGELOG.md
-COPYING.txt
-Gruntfile.js.sample
-LICENSE.txt
-LICENSE_AFL.txt
-SECURITY.md
-auth.json.sample
-bin/
-dev/
-grunt-config.json.sample
-lib/
-nginx.conf.sample
-package.json.sample
-phpserver/
-pub/
-setup/
-var/
+# MacOS
+.DS_Store
+
+# Coverage / testing
+.coverage
+.tox/
+htmlcov/
+*.cover
+
+# Migrations (optional: keep if you want to version them)
+# Uncomment if you don’t want migrations in git
+# */migrations/*.py
+# !*/migrations/__init__.py
