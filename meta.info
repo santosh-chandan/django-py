@@ -1,0 +1,5 @@
+Swagger UI → http://127.0.0.1:5001/api/docs/swagger/
+
+ReDoc → http://127.0.0.1:5001/api/docs/redoc/
+
+OpenAPI JSON → http://127.0.0.1:5001/api/schema/

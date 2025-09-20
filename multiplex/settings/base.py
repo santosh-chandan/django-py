@@ -41,8 +41,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    "drf_spectacular",
+    "drf_spectacular_sidecar",
     'app.users',
-    'app.posts'
+    'app.posts',
+    'app.comments'
 ]
 
 MIDDLEWARE = [
@@ -116,6 +120,49 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ),
+    # 'DEFAULT_THROTTLE_CLASSES': (
+    #     'post.throttles.PostUserThrottle',
+    #     'post.throttles.PostAnonThrottle',
+    # ),
+    # 'DEFAULT_THROTTLE_RATES': {
+    #     'posts_user': '200/day',   # logged in user
+    #     'posts_anon': '20/day',    # anonymous
+    # },
+    # 'DEFAULT_PAGINATION_CLASS': 'post.pagination.PostPageNumberPagination',
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    'PAGE_SIZE': 10,
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+   # 'EXCEPTION_HANDLER': 'post.exceptions.custom_exception_handler',
+}
+
+# drf-spectacular (OpenAPI/Swagger) settings (basic)
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Your Project API',
+    'DESCRIPTION': 'API for posts',
+    'VERSION': '1.0.0',
+    # other settings, e.g. 'SERVERS': [{'url': 'https://api.example.com'}]
+    "TAGS": [
+        {"name": "Authentication", "description": "Login, refresh, and user profile APIs"},
+        {"name": "Blogs", "description": "Blog posts APIs"},
+        {"name": "Comments", "description": "Comments APIs"},
+    ]
+}
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
@@ -132,6 +179,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# add this
+STATIC_ROOT = BASE_DIR / "staticfiles"  
+
+# optional: if you also want app-specific static during dev
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
