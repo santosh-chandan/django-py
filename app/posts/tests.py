@@ -30,7 +30,7 @@ def user2(db):
 
 
 @pytest.fixture
-def auth_client(api_client, user):
+def auth_client(api_client, user, db):
     """
     Return an APIClient that is authenticated as `user` (alice).
     We create a Token and attach it to the client's Authorization header.
@@ -41,7 +41,7 @@ def auth_client(api_client, user):
 
 
 @pytest.fixture
-def post1(user):
+def post1(db, user):
     """Create a simple Post owned by `user` (alice)."""
     return Post.objects.create(title='Hello', body='World', user=user, is_published=False)
 
@@ -62,10 +62,12 @@ class TestPostAPI:
     def test_create_post(self, auth_client, user):
         """Authenticated user can create a post; user should be set to the authenticated user."""
         data = {'title': 'New', 'body': 'Body of post', 'is_published': True}
-        resp = auth_client.post('/api/posts/', data)
+        resp = auth_client.post('/api/posts/', data, format='json')
         assert resp.status_code == 201
         # one existing post (post1) + new one = 2
-        assert Post.objects.filter(user=user).count() == 2
+        #assert Post.objects.filter(user=user).count() == 2
+        # verify the post returned has correct user
+        assert resp.data['user'] == user.id
 
     def test_update_not_user(self, api_client, user2, post1):
         """

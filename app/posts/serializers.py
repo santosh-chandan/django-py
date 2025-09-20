@@ -19,6 +19,7 @@ class PostSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'user', 'user_username', 'created_at', 'updated_at']
 
 class PostCreateUpdateSerializer(serializers.ModelSerializer):
+    user = serializers.ReadOnlyField(source='user.id')  # read-only
     class Meta:
         model = Post
-        fields = ['title', 'body', 'is_published']
+        fields = ['title', 'body', 'is_published', 'user']

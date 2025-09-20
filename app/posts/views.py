@@ -10,6 +10,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 # from rest_framework.schemas import AutoSchema
 from .serializers import PostSerializer, PostCreateUpdateSerializer
 from .models import Post
+from .utils import IsOwnerOrReadOnly
 
 from drf_spectacular.utils import extend_schema
 from drf_spectacular.openapi import AutoSchema
@@ -23,7 +24,7 @@ class PostViewSet(viewsets.ModelViewSet):
     # get_serializer_class() might return None then use this serializer_class
     serializer_class = PostSerializer  # DRF uses it whenever get_serializer_class() is not overridden.
     authentication_classes = [TokenAuthentication, SessionAuthentication]
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
     throttle_scope = 'user'  # use DRF's default throttles
     pagination_class = PageNumberPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -62,6 +63,8 @@ class PostViewSet(viewsets.ModelViewSet):
     def publish(self, request, pk=None):
         try:
             post = self.get_object()
+            if not request.user.is_staff:
+                return Response(status=403)
         except Post.DoesNotExist:
             raise NotFound(detail="Post not found")
 
