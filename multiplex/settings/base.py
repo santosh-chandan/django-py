@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
+    "graphene_django",
     "drf_spectacular",
     "drf_spectacular_sidecar",
     'app.users',
@@ -149,6 +150,12 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
    # 'EXCEPTION_HANDLER': 'post.exceptions.custom_exception_handler',
 }
+
+
+GRAPHENE = {
+    "SCHEMA": "app.graphql.schema"
+}
+
 
 # drf-spectacular (OpenAPI/Swagger) settings (basic)
 SPECTACULAR_SETTINGS = {

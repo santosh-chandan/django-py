@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from django.shortcuts import redirect
+from graphene_django.views import GraphQLView
+from django.views.decorators.csrf import csrf_exempt
 
 def redirect_to_swagger(request):
     return redirect('/api/docs/swagger/')
@@ -36,4 +38,9 @@ urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/docs/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+
+    # Global GraphQL endpoint
+    # csrf_exempt is needed because GraphQL POST requests often come without CSRF tokens (especially from external clients).
+    # graphiql=True enables the GraphiQL playground UI at /graphql/ so you can test queries interactively.
+    path("graphql/", csrf_exempt(GraphQLView.as_view(graphiql=True))),
 ]
