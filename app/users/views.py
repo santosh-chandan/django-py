@@ -29,8 +29,8 @@ class UserMeView(APIView):
             profile = None
         data = {
             'username': user.username,
-            'email': profile.email if profile.email else user.email,
-            'level': profile.level if profile.level else None
+            'email': profile.email if profile else user.email,
+            'level': profile.level if profile else None
         }
 
         return Response(data)
