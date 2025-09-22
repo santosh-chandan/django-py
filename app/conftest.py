@@ -6,6 +6,18 @@ from rest_framework.test import APIClient
 from app.users.models import userProfile
 import json
 
+
+# default client fixture provided by pytest-django
+# pytest-django automatically provides a client fixture (an instance of django.test.Client) in your tests 
+# if you include pytest-django in your project. You don’t need to define it yourself.
+# If you want a custom client
+# import pytest
+# from rest_framework.test import APIClient
+
+# @pytest.fixture
+# def api_client():
+#     return APIClient()
+
 # -----------------------
 # REST API fixtures
 # -----------------------

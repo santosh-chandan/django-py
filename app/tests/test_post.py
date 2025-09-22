@@ -3,7 +3,7 @@ import pytest
 from rest_framework.test import APIClient
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import get_user_model
-from .models import Post
+from ..posts.models import Post
 
 User = get_user_model()
 
