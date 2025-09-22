@@ -1,21 +1,18 @@
+
 # conftest.py
 import pytest
-from rest_framework.test import APIClient
 from django.contrib.auth.models import User
-from rest_framework.authtoken.models import Token
-from graphene_django.utils.testing import graphql_query
+from rest_framework.test import APIClient
 from app.users.models import userProfile
+import json
 
 # -----------------------
-# Fixtures for REST
+# REST API fixtures
 # -----------------------
-
-"""Unauthenticated DRF client."""
 @pytest.fixture
 def api_client():
     return APIClient()
 
-"""Default test user (santa)."""
 @pytest.fixture
 def user1(db):
     return User.objects.create_user(username='santa', password='pass123')
@@ -33,19 +30,39 @@ def user3(db):
     if created:
         user.set_password('pass123')
         user.save()
-        # Create userProfile for extra fields
         userProfile.objects.create(user=user, email=user.email, level='beginner')
     return user
 
 @pytest.fixture
 def auth_client(api_client, user1):
+    from rest_framework.authtoken.models import Token
     token = Token.objects.create(user=user1)
     api_client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
     return api_client
 
 # -----------------------
-# Fixtures for GraphQL
+# GraphQL fixtures
 # -----------------------
+
+@pytest.fixture
+def gql():
+    """
+    Helper to call GraphQL queries/mutations using Django test client.
+    Usage:
+        resp = gql(client, query, variables, headers)
+    """
+    def _gql(client, query, variables=None, headers=None):
+        payload = {"query": query}
+        if variables:
+            payload["variables"] = variables
+        resp = client.post(
+            "/graphql",
+            data=json.dumps(payload),
+            content_type="application/json",
+            **(headers or {})
+        )
+        return resp.json()
+    return _gql
 
 @pytest.fixture
 def gql_user(db):
@@ -72,12 +89,14 @@ def gql_get_tokens(client, gql_user):
     }
     """
     variables = {"username": gql_user.username, "password": "testpass"}
-
-    resp = graphql_query(query, variables=variables, client=client)
+    resp = client.post(
+        "/graphql",
+        data={"query": query, "variables": variables},
+        content_type="application/json"
+    )
     content = resp.json()
     if "errors" in content:
         raise AssertionError(f"GraphQL login failed: {content['errors']}")
-
     return content["data"]["login"]
 
 @pytest.fixture

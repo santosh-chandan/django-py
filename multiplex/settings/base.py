@@ -152,9 +152,9 @@ REST_FRAMEWORK = {
 }
 
 
-GRAPHENE = {
-    "SCHEMA": "app.graphql.schema"
-}
+# GRAPHENE = {
+#     "SCHEMA": "app.graphql.schema"
+# }
 
 
 # drf-spectacular (OpenAPI/Swagger) settings (basic)

@@ -1,58 +1,60 @@
-# Tests for the GraphQL auth schema: login, refresh_token, and me query.
+# tests/test_graphql_auth.py
 import pytest
-from graphene_django.utils.testing import graphql_query
-
-
-'''
-pytest-django ships with some default fixtures:
-client → Django test client (django.test.Client)
-
-from django.test import Client
-@pytest.fixture
-def client():
-    """Custom Django test client if you want to override default one."""
-    return Client()
-
-'''
+import json
+from django.urls import reverse
+from app.users.models import userProfile
+from django.contrib.auth.models import User
 
 # -------------------------------
-# 1) Test the login mutation
+# Helper function to send GraphQL requests via Django test client
 # -------------------------------
-@pytest.mark.django_db  # mark this test needs DB access
+def gql(client, query, variables=None, headers=None):
+    """
+    Send a POST request to the Strawberry GraphQL endpoint.
+    """
+    body = {"query": query}
+    if variables:
+        body["variables"] = variables
+
+    headers = headers or {}
+    response = client.post(
+        reverse("graphql"),  # Strawberry URL name
+        data=json.dumps(body),
+        content_type="application/json",
+        **headers
+    )
+    return response
+
+# -------------------------------
+# 1) Test login mutation
+# -------------------------------
+@pytest.mark.django_db
 def test_login_mutation(client, gql_user):
-    # GraphQL mutation to call the LoginMutation defined in your schema
     query = """
-    mutation {
+    mutation Login($username: String!, $password: String!) {
       login(username: $username, password: $password) {
         access
         refresh
       }
     }
     """
-
-    # variables for the mutation: match credentials of the `user` fixture
     variables = {"username": gql_user.username, "password": "testpass"}
 
-    # send the request using graphql_query helper and the Django test client
-    resp = graphql_query(query, variables=variables, client=client)
-    content = resp.json()                # parse the JSON body
+    resp = gql(client, query, variables)
+    content = resp.json()
 
-    assert "errors" not in content       # ensure GraphQL returned no errors
-    tokens = content["data"]["login"]    # access the returned data.login
-    # check both tokens are present and non-empty
+    assert "errors" not in content
+    tokens = content["data"]["login"]
     assert tokens.get("access")
     assert tokens.get("refresh")
 
 # -------------------------------
-# 2) Test refresh_token mutation
+# 2) Test refresh token mutation
 # -------------------------------
 @pytest.mark.django_db
 def test_refresh_token_mutation(client, gql_get_tokens):
-    # get_tokens is a fixture that returns a callable which logs in and returns tokens
-    tokens = gql_get_tokens()                # {"access": "...", "refresh": "..."}
+    tokens = gql_get_tokens  # fixture returns {"access": "...", "refresh": "..."}
 
-    # GraphQL mutation to exchange a refresh token for a new access token
-    # # Operation name = RefreshToken so you can remove RefreshToken($refresh: String!)
     query = """
     mutation RefreshToken($refresh: String!) {
       refreshToken(refresh: $refresh) {
@@ -60,23 +62,19 @@ def test_refresh_token_mutation(client, gql_get_tokens):
       }
     }
     """
+    variables = {"refresh": tokens["refresh"]}
 
-    variables = {"refresh": tokens["refresh"]}   # pass the refresh token
-
-    resp = graphql_query(query, variables=variables, client=client)
+    resp = gql(client, query, variables)
     content = resp.json()
 
-    assert "errors" not in content               # ensure no GraphQL errors
-    # assert the returned access token exists
+    assert "errors" not in content
     assert content["data"]["refreshToken"]["access"]
 
-
 # -------------------------------
-# 3) Test me query as authenticated user
+# 3) Test me query with authentication
 # -------------------------------
 @pytest.mark.django_db
-def test_me_query_authenticated(client, auth_headers, user):
-    # GraphQL query to read current user details (your resolve_me uses info.context.user)
+def test_me_query_authenticated(client, gql_user, gql_auth_headers):
     query = """
     query {
       me {
@@ -86,25 +84,20 @@ def test_me_query_authenticated(client, auth_headers, user):
       }
     }
     """
-
-    # pass Authorization header via headers param (Django test client expects HTTP_AUTHORIZATION)
-    resp = graphql_query(query, client=client, headers=auth_headers)
+    resp = gql(client, query, headers=gql_auth_headers)
     content = resp.json()
 
-    assert "errors" not in content               # ensure no GraphQL errors
-    me = content["data"]["me"]                   # the returned user object
-    # verify returned values match the user created in fixture
-    assert me["username"] == user.username
-    assert me["email"] == user.email
-    # level comes from userProfile if present; your fixture didn't create profile, so expect None
-    assert me["level"] is None
+    assert "errors" not in content
+    me = content["data"]["me"]
+    assert me["username"] == gql_user.username
+    assert me["email"] == gql_user.email
+    assert me["level"] == "beginner"
 
 # -------------------------------
-# 4) Test me query as anonymous user (should fail)
+# 4) Test me query as anonymous user
 # -------------------------------
 @pytest.mark.django_db
 def test_me_query_anonymous(client):
-    # same query but no auth header provided
     query = """
     query {
       me {
@@ -112,9 +105,9 @@ def test_me_query_anonymous(client):
       }
     }
     """
-    resp = graphql_query(query, client=client)
+    resp = gql(client, query)
     content = resp.json()
 
-    # resolver raises GraphQLError("Not logged in") — GraphQL returns this as an error
+    # Resolver should raise Exception("Not logged in")
     assert "errors" in content
     assert content["errors"][0]["message"] == "Not logged in"
