@@ -1,11 +1,12 @@
 import strawberry
+import strawberry_django
 from typing import List, Optional
 from strawberry.types import Info
 from django.contrib.auth.models import User
 from .models import Comment
 
 # Comment Type
-@strawberry.django.type(Comment)
+@strawberry_django.type(Comment)
 class commentType:        # ❌ Should use PascalCase by convention
     id : strawberry.auto
     author: strawberry.auto
@@ -72,4 +73,4 @@ class Mutation:
         comment.delete()
         return True
 
-schema = strawberry.schema(query=Query, mutation=Mutation)
+schema = strawberry.Schema(query=Query, mutation=Mutation)

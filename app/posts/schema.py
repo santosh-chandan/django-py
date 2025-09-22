@@ -1,5 +1,6 @@
 # app/posts/schema.py
 import strawberry
+import strawberry_django
 from typing import List, Optional
 from strawberry.types import Info
 from django.contrib.auth.models import User
@@ -10,12 +11,12 @@ from .models import Post
 # -------------------------
 # @strawberry.type will not convert defined atrribute into django model post
 # means we need to defin type of all attrinute int or char
-@strawberry.django.type(Post)
+@strawberry_django.type(Post)
 class PostType:
     id: strawberry.auto
     title: strawberry.auto
     body: strawberry.auto
-    author: strawberry.auto
+    user: strawberry.auto
     created_at: strawberry.auto
     updated_at: strawberry.auto
 
@@ -44,7 +45,7 @@ query {
     id
     title
     body
-    author {
+    user {
       username
     }
   }
@@ -72,7 +73,7 @@ class Mutation:
         if user.is_anonymous:
             raise Exception("Not logged in")
 
-        post = Post.objects.create(title=title, body=body, author=user)
+        post = Post.objects.create(title=title, body=body, user=user)
         return post
 
 
@@ -90,7 +91,7 @@ class Mutation:
         except Post.DoesNotExist:
             raise Exception("Post not found")
 
-        if post.author != user:
+        if post.user != user:
             raise Exception("Not allowed to edit this post")
 
         if title:
@@ -112,7 +113,7 @@ class Mutation:
         except Post.DoesNotExist:
             raise Exception("Post not found")
 
-        if post.author != user:
+        if post.user != user:
             raise Exception("Not allowed to delete this post")
 
         post.delete()
